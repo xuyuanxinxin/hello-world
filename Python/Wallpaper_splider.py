@@ -1,9 +1,14 @@
-#!/usr/bin/env python2.7
+#!/usr/bin/env python3
+import sys
 import os
 import requests
 from lxml import etree
 from multiprocessing import Pool,cpu_count
 from threading import Thread
+
+SUCCESS = "\033[1;32m[+]\033[0m"
+FAILED = "\033[1;31m[-]\033[0m"
+WARRING = "\033[1;33m[!]\033[0m"
 
 class Wallpaper_Splider(object):
 	def __init__(self,url):
@@ -37,7 +42,7 @@ class Wallpaper_Splider(object):
 			if Result != []:
 				self.Download(Result[0])
 		except requests.exceptions.ConnectionError:
-			print("\033[1;31m[-]\033[0m Parse Img Url Failed Retrying...")
+			print("{} Parse Img Url Failed Retrying...".format(SUCCESS))
 			self.Parse_Img_Url(Home_Url)
 	def Download(self,img_url):
 		filename = self.Path+'/'+img_url.split('/')[-1]
@@ -46,11 +51,11 @@ class Wallpaper_Splider(object):
 			content = requests.get("https:"+img_url,headers=self.header).content
 			with open(filename,'wb') as f:
 				f.write(content)
-			print("\033[1;32m[+]\033[0m Download Img_File----> {} Success!".format(img_url))
+			print("{} Download Img_File----> {} Success!".format(SUCCESS,img_url))
 		except requests.exceptions.ConnectionError:
-			print("\033[1;31m[-]\033[0m Download Img_File---> {} Failed Retrying...".format(img_url))
+			print("{} Download Img_File---> {} Failed Retrying...".format(FAILED,img_url))
 		except AssertionError:
-			print("\033[1;33m[!]\033[0m File--->{} is exists".format(filename))
+			print("{} File--->{} is exists".format(WARRING,filename))
 
 
 def Run(Url):
@@ -59,8 +64,14 @@ def Run(Url):
 	A.Home_Page()
 
 if __name__ == "__main__":
+	keyword = []
+	if len(sys.argv) > 2:
+		keyword = sys.argv[1]
+	if keyword == [] :
+		keyword = "minimalism"
+	print("{} Search Keyword is:{}".format(SUCCESS,keyword))
 	pool = Pool(4)
-	pool.map(Run,["https://alpha.wallhaven.cc/toplist?page={}&q=minimalism".format(i) for i in range(1,10)])
+	pool.map(Run,["https://alpha.wallhaven.cc/toplist?page={}&q={}".format(i,keyword) for i in range(1,10)])
 	pool.close()
 	pool.join()
 	print("All Done...")
